@@ -1,0 +1,5 @@
+[
+    { "id": 1, "name": "Battle Quest", "category": "action", "price": 50, "discount": 10 },
+    { "id": 2, "name": "Mystery Puzzle", "category": "puzzle", "price": 30 },
+    { "id": 3, "name": "Jungle Jump", "category": "platform", "price": 20, "discount": 5 }
+]
