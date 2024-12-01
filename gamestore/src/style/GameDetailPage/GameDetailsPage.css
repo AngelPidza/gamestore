@@ -1,0 +1,317 @@
+/* GameDetailsPage.css */
+:root {
+    --primary-color: #1a1a1a;
+    --secondary-color: #2d2d2d;
+    --accent-color: #8b5cf6;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --card-bg: #1f1f1f;
+    --hover-color: #3d3d3d;
+    --tag-bg: #2d2d2d;
+}
+
+.game-details {
+    min-height: 100vh;
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--accent-color);
+}
+
+.hero-section {
+    position: relative;
+    height: 1000px;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.7);
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        var(--primary-color) 0%,
+        transparent 50%,
+        rgba(0,0,0,0.7) 100%
+    );
+}
+
+.hero-content {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    padding: 0 5%;
+    margin: 0 auto;
+    max-width: 1500px;
+}
+
+.hero-content h1 {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero-stats {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.metacritic-score {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.score-high { background-color: #22c55e; }
+.score-medium { background-color: #eab308; }
+.score-low { background-color: #ef4444; }
+
+.rating {
+    color: #fbbf24;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 5%;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2.5rem;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.about-section,
+.screenshots-section,
+.info-card,
+.tags-section {
+    margin-top: 2rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.about-section h2,
+.screenshots-section h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.about-section p {
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.screenshots-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.screenshots-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.screenshots-grid img:hover {
+    transform: scale(1.02);
+}
+
+.info-item {
+    margin-bottom: 2rem;
+}
+
+.info-item h3 {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.tag {
+    background-color: var(--tag-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: background-color 0.2s ease;
+}
+
+.tag:hover {
+    background-color: var(--hover-color);
+}
+
+.website-button {
+    display: block;
+    text-align: center;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-top: 2rem;
+}
+
+.website-button:hover {
+    background-color: #7c3aed;
+    transform: translateY(-2px);
+}
+
+.price-section {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.discounted-price {
+    color: #22c55e;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.discount-badge {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Añade esto a tu GameDetailsPage.css */
+.metacritic-platforms-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.metacritic-platform-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--hover-color);
+}
+
+.metacritic-platform-item:last-child {
+    border-bottom: none;
+}
+
+.score {
+    font-weight: bold;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.stores-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stores-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.store-tag {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.store-tag:hover {
+    background-color: #7c3aed;
+    transform: translateY(-2px);
+}
+
+/* Para las imágenes de demostración */
+.screenshots-full {
+    margin-top: 2rem;
+}
+
+.screenshots-full img {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1024px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section {
+        height: 400px;
+    }
+}
+
+@media (max-width: 640px) {
+    .screenshots-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-section {
+        height: 300px;
+    }
+    
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+}

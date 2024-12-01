@@ -1,6 +1,7 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
-const gamesData = require('./data/games.json');
+const axios = require('axios');
 
 // Estrategias de filtrado
 const CategoryFilterStrategy = require('./strategies/CategoryFilterStrategy');
@@ -10,26 +11,194 @@ const DiscountFilterStrategy = require('./strategies/DiscountFilterStrategy');
 const app = express();
 app.use(cors());
 
-app.get('/games', (req, res) => {
-    let { category, maxPrice, discountOnly } = req.query;
-    let games = gamesData;
-
-    if (category) {
-        const categoryFilter = new CategoryFilterStrategy(category);
-        games = categoryFilter.filter(games);
+// Limitar el número de solicitudes simultáneas
+const fetchGameDetails = async (gameId) => {
+    try {
+        const gameResponse = await axios.get(
+            `https://api.rawg.io/api/games/${gameId}?key=daac941fa17c4f90bd2247f52fb4699c`
+        );
+        return gameResponse.data.description_raw || 'No description available';
+    } catch (error) {
+        console.error(`Error fetching details for game ${gameId}:`, error);
+        return 'No description available'; // En caso de error, devolver un mensaje por defecto
     }
+};
 
-    if (maxPrice) {
-        const priceFilter = new PriceFilterStrategy(parseFloat(maxPrice));
-        games = priceFilter.filter(games);
+
+// Transformar los datos básicos y agregar la descripción
+const transformApiDataWithDescriptions = async (apiGames) => {
+    const games = await Promise.allSettled(
+        apiGames.map(async (game) => {
+            const description_raw = await fetchGameDetails(game.id);
+            return {
+                id: game.id,
+                name: game.name,
+                imageUrl: game.background_image,
+                rating: game.rating,
+                price: game.metacritic ? game.metacritic.toFixed(2) : 59.99,
+                genres: game.genres ? game.genres.map(g => g.name) : [],
+                playtime: game.playtime,
+                discount: game.rating > 4 ? null : Math.floor((4 - game.rating) * 10),
+                description: description_raw, // Descripción obtenida de la llamada adicional
+            };
+        })
+    );
+    return games.filter(result => result.status === 'fulfilled').map(result => result.value);
+};
+
+// Nueva ruta para obtener juegos de la API
+app.get('/games', async (req, res) => {
+    try {
+        let { category, maxPrice, discountOnly } = req.query;
+
+        // Obtener datos básicos de la API
+        const response = await axios.get(`https://api.rawg.io/api/games?key=daac941fa17c4f90bd2247f52fb4699c&page_size=100&_=${new Date().getTime()}`);
+        const apiGames = response.data.results;
+
+        // Agregar descripciones
+        const games = await transformApiDataWithDescriptions(apiGames);
+
+        console.log('Fetched games:', games);
+
+        // Aplicar filtros
+        let filteredGames = games;
+
+        if (category) {
+            const categoryFilter = new CategoryFilterStrategy(category);
+            filteredGames = categoryFilter.filter(filteredGames);
+        }
+
+        if (maxPrice) {
+            const priceFilter = new PriceFilterStrategy(parseFloat(maxPrice));
+            filteredGames = priceFilter.filter(filteredGames);
+        }
+
+        if (discountOnly === "true") {
+            const discountFilter = new DiscountFilterStrategy();
+            filteredGames = discountFilter.filter(filteredGames);
+        }
+
+        res.json(filteredGames);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching games data' });
     }
-
-    if (discountOnly === "true") {
-        const discountFilter = new DiscountFilterStrategy();
-        games = discountFilter.filter(games);
-    }
-
-    res.json(games);
 });
 
-app.listen(5000, () => console.log('Backend ejecutándose en http://localhost:5000'));
+
+app.get('/games/:id', async (req, res) => {
+    try {
+        // Obtener los detalles del juego
+        const gameResponse = await axios.get(
+            `https://api.rawg.io/api/games/${req.params.id}?key=daac941fa17c4f90bd2247f52fb4699c`
+        );
+        
+        // Obtener las capturas de pantalla del juego
+        const screenshotsResponse = await axios.get(
+            `https://api.rawg.io/api/games/${req.params.id}/screenshots?key=daac941fa17c4f90bd2247f52fb4699c`
+        );
+
+        const gameDetails = {
+            id: gameResponse.data.id,
+            slug: gameResponse.data.slug,
+            name: gameResponse.data.name,
+            description: gameResponse.data.description_raw,
+            nameOriginal: gameResponse.data.name_original,
+            released: gameResponse.data.released,
+            updated: gameResponse.data.updated,
+            backgroundImage: gameResponse.data.background_image,
+            backgroundImageAdditional: gameResponse.data.background_image_additional,
+            website: gameResponse.data.website,
+            rating: gameResponse.data.rating,
+            ratingTop: gameResponse.data.rating_top,
+            ratings: gameResponse.data.ratings.map(rating => ({
+                id: rating.id,
+                title: rating.title,
+                count: rating.count,
+                percent: rating.percent
+            })),
+            metacritic: gameResponse.data.metacritic,
+            metacriticPlatforms: gameResponse.data.metacritic_platforms?.map(platform => ({
+                metascore: platform.metascore,
+                url: platform.url,
+                platform: platform.platform.name
+            })),
+            playtime: gameResponse.data.playtime,
+            platforms: gameResponse.data.platforms?.map(p => ({
+                platform: p.platform.name,
+                released: p.released_at,
+                requirements: p.requirements_en
+            })),
+            parentPlatforms: gameResponse.data.parent_platforms?.map(p => p.platform.name),
+            genres: gameResponse.data.genres?.map(g => ({
+                id: g.id,
+                name: g.name,
+                slug: g.slug
+            })),
+            stores: gameResponse.data.stores?.map(s => ({
+                id: s.id,
+                url: s.url,
+                store: s.store.name
+            })),
+            developers: gameResponse.data.developers?.map(d => ({
+                id: d.id,
+                name: d.name,
+                slug: d.slug
+            })),
+            publishers: gameResponse.data.publishers?.map(p => ({
+                id: p.id,
+                name: p.name,
+                slug: p.slug
+            })),
+            esrbRating: gameResponse.data.esrb_rating ? {
+                id: gameResponse.data.esrb_rating.id,
+                name: gameResponse.data.esrb_rating.name,
+                slug: gameResponse.data.esrb_rating.slug
+            } : null,
+            tags: gameResponse.data.tags?.map(t => ({
+                id: t.id,
+                name: t.name,
+                slug: t.slug,
+                language: t.language,
+                gamesCount: t.games_count
+            })),
+            screenshots: screenshotsResponse.data.results?.map(screenshot => ({
+                id: screenshot.id,
+                image: screenshot.image
+            })) || [],
+            shortScreenshots: gameResponse.data.short_screenshots?.map(screenshot => ({
+                id: screenshot.id,
+                image: screenshot.image
+            })) || [],
+            added: gameResponse.data.added,
+            addedByStatus: gameResponse.data.added_by_status,
+            redditUrl: gameResponse.data.reddit_url,
+            redditCount: gameResponse.data.reddit_count,
+            twitchCount: gameResponse.data.twitch_count,
+            youtubeCount: gameResponse.data.youtube_count,
+            reviewsCount: gameResponse.data.reviews_count,
+            price: gameResponse.data.metacritic ? (Math.max(9.99, gameResponse.data.metacritic * 0.6)).toFixed(2) : 59.99,
+            discount: gameResponse.data.rating 
+                ? gameResponse.data.rating < 4 
+                    ? Math.floor((4 - gameResponse.data.rating) * 15) 
+                    : null 
+                : null,
+            alternativeNames: gameResponse.data.alternative_names || []
+        };
+
+        res.json(gameDetails);
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            res.status(404).json({ error: 'Game not found' });
+        } else {
+            console.error('Error fetching game details:', error);
+            res.status(500).json({ error: 'Error fetching game details' });
+        }
+    }
+});
+
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

@@ -1,7 +1,23 @@
-/* GameList.css */
-.game-list {
+.game-list-container {
+    max-width: 1200px;
+    margin: 0 auto; /* Centrar la lista */
+    padding: 5px;
+}
+
+.game-list-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px 0;
+    grid-template-columns: repeat(3, 1fr); /* Tres columnas */
+    gap: 5px; /* Espaciado entre tarjetas */
+}
+
+@media (max-width: 1024px) {
+    .game-list-grid {
+        grid-template-columns: repeat(2, 1fr); /* Dos columnas en pantallas medianas */
+    }
+}
+
+@media (max-width: 768px) {
+    .game-list-grid {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+    }
 }

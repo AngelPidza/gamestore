@@ -1,18 +1,28 @@
 class DiscountDecorator {
-    constructor(game, discountPercentage) {
+    constructor(game) {
         this.game = game;
-        this.discountPercentage = discountPercentage;
+    }
+
+    getPrice() {
+        if (this.game.discount) {
+            return this.game.price * (1 - this.game.discount / 100);
+        }
+        return this.game.price;
     }
 
     getDetails() {
-        const discountAmount = this.game.price * (this.discountPercentage / 100);
-        const discountedPrice = this.game.price - discountAmount;
-        return {
+        const baseDetails = {
             ...this.game,
-            originalPrice: this.game.price,
-            discountedPrice: parseFloat(discountedPrice.toFixed(2)),
-            discountPercentage: this.discountPercentage,
+            finalPrice: this.getPrice()
         };
+
+        if (this.game.discount) {
+            baseDetails.discountApplied = true;
+            baseDetails.originalPrice = this.game.price;
+            baseDetails.savings = this.game.price - this.getPrice();
+        }
+
+        return baseDetails;
     }
 }
 
