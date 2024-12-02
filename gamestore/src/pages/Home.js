@@ -1,6 +1,7 @@
 // pages/Home.js (Nueva página que contiene tu lógica actual)
 import React, { useState } from 'react';
 import GameList from '../components/GameList';
+import '../style/Home.css';
 
 const Home = () => {
     const [category, setCategory] = useState('');
@@ -28,7 +29,7 @@ const Home = () => {
                     setCategory('');
                     setMaxPrice('');
                     setDiscountOnly(false);
-                }}>
+                }}> 
                     Reset filtros
                 </button>
             </div>

@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 
+const apikey = '50d0e4bb9d0b4c1383c9201b658a4fbe';
 // Estrategias de filtrado
 const CategoryFilterStrategy = require('./strategies/CategoryFilterStrategy');
 const PriceFilterStrategy = require('./strategies/PriceFilterStrategy');
@@ -15,7 +16,7 @@ app.use(cors());
 const fetchGameDetails = async (gameId) => {
     try {
         const gameResponse = await axios.get(
-            `https://api.rawg.io/api/games/${gameId}?key=daac941fa17c4f90bd2247f52fb4699c`
+            `https://api.rawg.io/api/games/${gameId}?key=${apikey}`
         );
         return gameResponse.data.description_raw || 'No description available';
     } catch (error) {
@@ -35,30 +36,52 @@ const transformApiDataWithDescriptions = async (apiGames) => {
                 name: game.name,
                 imageUrl: game.background_image,
                 rating: game.rating,
-                price: game.metacritic ? game.metacritic.toFixed(2) : 59.99,
+                price: game.metacritic ? (game.metacritic/2).toFixed(2) : 59.99,
                 genres: game.genres ? game.genres.map(g => g.name) : [],
                 playtime: game.playtime,
-                discount: game.rating > 4 ? null : Math.floor((4 - game.rating) * 10),
-                description: description_raw, // Descripción obtenida de la llamada adicional
+                discount: game.rating > 4 ? null : (Math.floor((4 - game.rating) * 10)).toFixed(2),
+                description: description_raw,
             };
         })
     );
     return games.filter(result => result.status === 'fulfilled').map(result => result.value);
 };
 
-// Nueva ruta para obtener juegos de la API
 app.get('/games', async (req, res) => {
     try {
         let { category, maxPrice, discountOnly } = req.query;
+        
+        // Modificamos la función para obtener todos los juegos necesarios
+        async function fetchAllGames(pageSize = 100) {
+            let allGames = [];
+            const timestamp = new Date().getTime();
+            
+            // Hacemos la primera llamada para obtener el total de páginas
+            const firstResponse = await axios.get(
+                `https://api.rawg.io/api/games?key=${apikey}&page_size=${pageSize}&_=${timestamp}`
+            );
+            
+            // Agregamos los resultados de la primera página
+            allGames = [...firstResponse.data.results];
+            
+            // Si necesitamos más páginas, las solicitamos
+            if (firstResponse.data.next) {
+                const page2Response = await axios.get(
+                    `${firstResponse.data.next}&_=${timestamp}`
+                );
+                allGames = [...allGames, ...page2Response.data.results];
+            }
+            
+            return allGames;
+        }
 
         // Obtener datos básicos de la API
-        const response = await axios.get(`https://api.rawg.io/api/games?key=daac941fa17c4f90bd2247f52fb4699c&page_size=100&_=${new Date().getTime()}`);
-        const apiGames = response.data.results;
-
+        const apiGames = await fetchAllGames();
+        
         // Agregar descripciones
         const games = await transformApiDataWithDescriptions(apiGames);
 
-        console.log('Fetched games:', games);
+        console.log('Fetched games count:', games.length);
 
         // Aplicar filtros
         let filteredGames = games;
@@ -85,24 +108,23 @@ app.get('/games', async (req, res) => {
     }
 });
 
-
 app.get('/games/:id', async (req, res) => {
     try {
         // Obtener los detalles del juego
         const gameResponse = await axios.get(
-            `https://api.rawg.io/api/games/${req.params.id}?key=daac941fa17c4f90bd2247f52fb4699c`
+            `https://api.rawg.io/api/games/${req.params.id}?key=${apikey}`
         );
         
         // Obtener las capturas de pantalla del juego
         const screenshotsResponse = await axios.get(
-            `https://api.rawg.io/api/games/${req.params.id}/screenshots?key=daac941fa17c4f90bd2247f52fb4699c`
+            `https://api.rawg.io/api/games/${req.params.id}/screenshots?key=${apikey}`
         );
 
         const gameDetails = {
             id: gameResponse.data.id,
             slug: gameResponse.data.slug,
             name: gameResponse.data.name,
-            description: gameResponse.data.description_raw,
+            description: gameResponse.data.description,
             nameOriginal: gameResponse.data.name_original,
             released: gameResponse.data.released,
             updated: gameResponse.data.updated,

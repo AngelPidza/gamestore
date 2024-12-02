@@ -14,7 +14,7 @@ const GameCard = ({ game }) => {
         src={game.imageUrl} 
         alt={game.name} 
       />
-
+//me gusta el pene mucho porfavor dame mucho pene porfavor
       <div className="game-card-alt-content">
         <h3 className="game-card-alt-title">{game.name}</h3>
 
@@ -40,7 +40,7 @@ const GameCard = ({ game }) => {
             <>
               <span className="game-card-alt-original-price">${game.price}</span>
               <span className="game-card-alt-final-price">
-                ${(game.price * (1 - game.discount / 100))}
+                ${(game.price * (1 - game.discount / 100)).toFixed(2)}
               </span>
             </>
           ) : (

@@ -13,7 +13,7 @@ const GameList = ({ category, maxPrice, discountOnly }) => {
             try {
                 const fetchedGames = await fetchGames();
                 const filteredGames = fetchedGames.filter(game => {
-                    if (category && game.category !== category) return false;
+                    if (category && game.genres.includes(category)) return false;
                     if (maxPrice && game.price > parseFloat(maxPrice)) return false;
                     if (discountOnly && !game.discountedPrice) return false;
                     return true;
